@@ -29,4 +29,40 @@ contract Voting {
     //this key-value pair is what the new var 'voters' represents
     mapping(address => Voter) public voters;
 
+    //this declares a new array 'proposals' of Proposal structs
+    Proposal[] public proposals;
+
+    //constructor: a function that invokes only once upon contract deployment, initializes contract state
+    //declares proposalNames as a param
+    constructor(bytes32[] memory proposalNames) {
+        //msg.sender is the account calling for execution of the 'Voter' contract
+        //msg.sender can either be a human user (as it is in this case) or another contract on-chain
+        chairperson = msg.sender;
+        voters[chairperson].weight = 1;
+
+        for (uint i = 0; i < proposalNames.length; i++) {
+            proposals.push(Proposal({name: proposalNames[i], voteCount: 0}));
+        }
+    }
+
+    function giveRightToVote(address voter) external {
+       //BEGIN REQUIRES (stops execution if failed)
+            require(
+                msg.sender == chairperson,
+                //Else statement produced if the argument fails
+                "Only the chairperson can give another the right to vote."
+            );
+
+            //translation: verify this indexed 'voter' within the 'voters' kvp var has NOT voted
+            //ELSE, return an error string (and stop execution)
+            require(!voters[voter].voted, "The voter has already voted.")
+
+            //translation: verify this indexed 'voter' within the 'voters' kvp var has NOT been assigned a weight
+            require(voters[voter].weight == 0);
+       //END REQUIRES
+
+       //BEGIN LOGIC
+            voters[voter].weight = 1;
+       //END LOGIC
+    }
 }
