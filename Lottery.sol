@@ -32,7 +32,7 @@ contract Lottery {
     }
 
     //create a new betting round which will change the state to State.BETTING
-    function createBet(uint numPlayers, uint betMoney) external inState(State.IDLE) onlyAdmin() {
+    function newRound(uint numPlayers, uint betMoney) external inState(State.IDLE) onlyAdmin() {
         MaxNumPlayers = numPlayers;
         moneyRequiredToBet = betMoney;
 
@@ -57,8 +57,8 @@ contract Lottery {
         }
     }
 
-    //cancels the current betting rounder
-    function cancel() external inState(State.BETTING) onlyAdmin() {
+    //cancels the current betting rounde
+    function cancelRound() external inState(State.BETTING) onlyAdmin() {
         for(uint i = 0; i < players.length; i++) {
             players[i].transfer(moneyRequiredToBet);
         }
