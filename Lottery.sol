@@ -47,7 +47,7 @@ contract Lottery {
         players.push(payable(msg.sender));
         if(players.length == MaxNumPlayers) {
             //picks a winner (In the future, we can add Verifiable Randomness from Chainlink)
-            uint winner = _randomModulo(MaxNumPlayers);
+            uint winner = _randomModulo(MaxNumPlayers); //TODO: throws error
             //sends money to winner
             players[winner].transfer((moneyRequiredToBet * MaxNumPlayers) * (100 - houseFee) / 100);
             //updates state to IDLE
