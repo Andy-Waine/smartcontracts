@@ -32,7 +32,7 @@ contract Lottery {
     }
 
     //create a new betting round which will change the state to State.BETTING
-    function newRound(uint numPlayers, uint betMoney) external inState(State.IDLE) onlyAdmin() {
+    function createBet(uint numPlayers, uint betMoney) external inState(State.IDLE) onlyAdmin() {
         MaxNumPlayers = numPlayers;
         moneyRequiredToBet = betMoney;
 
@@ -47,7 +47,7 @@ contract Lottery {
         players.push(payable(msg.sender));
         if(players.length == MaxNumPlayers) {
             //picks a winner (In the future, we can add Verifiable Randomness from Chainlink)
-            uint winner = _randomModulo(MaxNumPlayers); //TODO: throws error
+            uint winner = _randomModulo(MaxNumPlayers);
             //sends money to winner
             players[winner].transfer((moneyRequiredToBet * MaxNumPlayers) * (100 - houseFee) / 100);
             //updates state to IDLE
@@ -57,12 +57,11 @@ contract Lottery {
         }
     }
 
-    //cancels the current betting rounde
-    function cancelRound() external inState(State.BETTING) onlyAdmin() {
+    //cancels the current betting rounder
+    function cancel() external inState(State.BETTING) onlyAdmin() {
         for(uint i = 0; i < players.length; i++) {
             players[i].transfer(moneyRequiredToBet);
         }
-
         //clears data, removes players from betting round
         delete players;
 
@@ -71,7 +70,7 @@ contract Lottery {
     }
 
     //combines timestamp and difficulty to produce random number less than param entered
-    function randomModulo(uint modulo) view internal returns(uint) {
+    function _randomModulo(uint modulo) view internal returns(uint) {
         uint randomNumber;
 
         //abi.encodePacked combines the values, keccak256 hashes the value
