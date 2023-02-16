@@ -20,4 +20,11 @@ contract BTCPricefeed {
             0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43
         );
     }
+
+    function getLatestPrice() public view returns (int) {
+        (
+            int price
+        ) = priceFeed.latestRoundData();
+        return price;
+    }
 }
