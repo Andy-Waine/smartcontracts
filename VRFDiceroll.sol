@@ -17,10 +17,12 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 //This contract (VRFDiceroll) will inherit from VRFConsumerBaseV2
 contract VRFDiceroll is VRFConsumerBaseV2 {
   //VARIABLES
+    uint256 private constant ROLL_IN_PROGRESS = 42;
+
     VRFCoordinatorV2Interface COORDINATOR;
 
     //the subscription ID that this contract uses for funding requests
-    uint64 s_subscriptionId;
+    uint64 s_subscriptionId = 56;
 
     //Deployed VRF Coordinator Contract address from Chainlink
     address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D;
@@ -36,10 +38,12 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
 
     //number of random values requested per transaction 
     uint32 numWords =  1;
+    address s_owner;
 
-    uint256 private constant ROLL_IN_PROGRESS = 42;
-
+    //map rollers to requestIds
     mapping(uint256 => address) private s_rollers;
+
+    //map requestIds to rollers
     mapping(address => uint256) private s_results;
 
 
@@ -53,21 +57,20 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
 
   //CONSTRUCTOR
     //also calls upon constructor from VRFConsumerBaseV2 (parent contract)
-    constructor(uint subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
+    constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
       COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
       s_owner = msg.sender; //set owner to the address that deployed the contract
       s_subscriptionId = subscriptionId; //set subscription ID to the ID that was passed in
     }
 
   //FUNCTIONS
-    function rollDice(address roller) public onlyOwnwer returns (uint256 requestId) {
+    function rollDice(address roller) public onlyOwner returns (uint256 requestId) {
       require(s_results[roller] == 0 , "Already rolled"); //require that the roller has not already rolled
       requestId = COORDINATOR.requestRandomWords(
         s_keyHash,
-        callbackGasLimit, 
         s_subscriptionId,
-        roller,
         requestConfirmations,
+        callbackGasLimit,
         numWords
       );
 
@@ -77,10 +80,10 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
       emit DiceRolled(requestId, roller);
     }
 
-    
+
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
       //transform the result to a number between 1 and 20, inclusively
-      uint256 d20vlaue = (randomWords[0] % 20) + 1;
+      uint256 d20value = (randomWords[0] % 20) + 1;
 
       //assign the transformed value to the address in the s_results mapping variable
       s_results[s_rollers[requestId]] = d20value;
@@ -127,6 +130,12 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
 
       //returns houseName at given index
       //sub(1) reduces id by 1 to adjust the index to be zero-based
-      return houseNames[id.sub(1)];
+      return houseNames[id - 1];
+    }
+
+    //only the owner of the contract can call this function
+    modifier onlyOwner() {
+      require(msg.sender == s_owner);
+      _;
     }
 }
