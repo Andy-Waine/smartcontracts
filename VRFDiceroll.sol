@@ -1,4 +1,5 @@
-//This contract is a dice roller that uses Chainlink VRF to generate random numbers
+//This contract is a dice roller with a Game of Thrones theme,
+  //that uses Chainlink VRF to generate random numbers
 //Deployable on the Ethereum Sepolia testnet
 
 // SPDX-License-Identifier: MIT
@@ -7,9 +8,17 @@ pragma solidity ^0.8.7;
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
+/**
+ * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
+ * THIS IS AN EXAMPLE CONTRACT THAT USES UN-AUDITED CODE.
+ * DO NOT USE THIS CODE IN PRODUCTION.
+ */
+
 //This contract (VRFDiceroll) will inherit from VRFConsumerBaseV2
 contract VRFDiceroll is VRFConsumerBaseV2 {
   //VARIABLES
+    VRFCoordinatorV2Interface COORDINATOR;
+
     //the subscription ID that this contract uses for funding requests
     uint64 s_subscriptionId;
 
@@ -68,8 +77,8 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
       emit DiceRolled(requestId, roller);
     }
 
+    
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
-
       //transform the result to a number between 1 and 20, inclusively
       uint256 d20vlaue = (randomWords[0] % 20) + 1;
 
@@ -80,4 +89,44 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
       emit DiceLanded(requestId, d20value);
     }
 
+    //obtains the house assigned to the player once the address has rolled the dice
+    function house(address player) public view returns (string memory) {
+      //check if dice has not yet been rolled
+      require(s_results[player] != 0, "Dice not rolled yet");
+
+      //check if dice is still rolling
+      require(s_results[player] != ROLL_IN_PROGRESS, "Roll in progreess");
+
+      return getHouseName(s_results[player]);
+    }
+
+    function getHouseName(uint256 id) private pure returns (string memory) {
+      //array sorting the list of house's names
+      string[20] memory houseNames = [
+        "Stark",
+        "Lannister",
+        "Targaryen",
+        "Baratheon",
+        "Greyjoy",
+        "Tyrell",
+        "Martell",
+        "Arryn",
+        "Tully",
+        "Frey",
+        "Bolton",
+        "Clegane",
+        "Mormont",
+        "Karstark",
+        "Manderly",
+        "Umber",
+        "Tarly",
+        "Royce",
+        "Reed",
+        "Baelish"
+      ];
+
+      //returns houseName at given index
+      //sub(1) reduces id by 1 to adjust the index to be zero-based
+      return houseNames[id.sub(1)];
+    }
 }
