@@ -129,7 +129,7 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
       ];
 
       //returns houseName at given index
-      //sub(1) reduces id by 1 to adjust the index to be zero-based
+      //reduces id by 1 to adjust the index to be zero-based
       return houseNames[id - 1];
     }
 
