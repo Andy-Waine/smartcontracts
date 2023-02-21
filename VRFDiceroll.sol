@@ -80,7 +80,6 @@ contract VRFDiceroll is VRFConsumerBaseV2 {
       emit DiceRolled(requestId, roller);
     }
 
-
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
       //transform the result to a number between 1 and 20, inclusively
       uint256 d20value = (randomWords[0] % 20) + 1;
