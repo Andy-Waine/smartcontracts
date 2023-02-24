@@ -45,7 +45,7 @@ contract APIConsumer is ChainlinkClient, ConfirmedOwner {
      */
 
 
-     function requestVolumeData() public returns (bytes32 requestId) {
+    function requestVolumeData() public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             jobId,
             address(this),
@@ -71,5 +71,24 @@ contract APIConsumer is ChainlinkClient, ConfirmedOwner {
 
         //Send the request, return result
         return sendChainlinkRequest(req, fee);
-     }
+    }
+
+    /**
+    * Receive the response in the form of uint256
+    */
+    function fulfill(bytes32 _requestId, uint256 _volume) public recordChainlinkFullfillment(_requestId) {
+        emit RequestVolume(_requestId, _volume);
+        volume = _volume;
+    }
+
+    /**
+    * Allow withdrawal of Link tokens from the contract
+    */
+    function withdrawLink() public onlyOwner {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(
+            link.transfer(msg.sender, link.BalanceOf(address(this))),
+            "Unable to transfer"        //else err msg
+        );
+    }
 }
